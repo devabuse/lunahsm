@@ -1,0 +1,8 @@
+cryptoki_location: c:\Program Files\SafeNet\LunaClient\cryptoki.dll
+partition_password: password
+slot: 2
+masterkey_one: encrypted_masterkey
+masterkey_two: encrypted_masterkey
+masterkey_in_use: masterkey_one
+use_direct_connection: false
+rabbitmq: amqp://guest:guest@localhost:5672

@@ -1,0 +1,30 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    amq-protocol (2.2.0)
+    bunny (2.7.2)
+      amq-protocol (>= 2.2.0)
+    mustermann (1.0.1)
+    pkcs11 (0.2.6-x64-mingw32)
+    puma (3.11.0)
+    rack (2.0.3)
+    rack-protection (2.0.0)
+      rack
+    sinatra (2.0.0)
+      mustermann (~> 1.0)
+      rack (~> 2.0)
+      rack-protection (= 2.0.0)
+      tilt (~> 2.0)
+    tilt (2.0.8)
+
+PLATFORMS
+  x64-mingw32
+
+DEPENDENCIES
+  bunny
+  pkcs11
+  puma
+  sinatra
+
+BUNDLED WITH
+   1.16.0
