@@ -1,17 +1,18 @@
 class Authentication
     TRANSPORTKEY_LABEL = 'KeyTransportKey'
 
-    attr_accessor :pkcs11, :slot, :session, :masterkey
+    attr_accessor :session, :masterkey_cache
 
     def initialize(config)
         @config = config
-        @pkcs11 = PKCS11.open(config['cryptoki_location'], :flags => CKF_OS_LOCKING_OK)
-        @session = pkcs11.active_slots[config['slot']].open
-        @masterkey = config[@config['masterkey_in_use']]
+        @session = PKCS11.open(config['cryptoki_location']).active_slots[config['slot']].open
+        @masterkey_cache = Hash.new
     end
 
     def login()
         @session.login(:USER, @config['partition_password'])
+        @masterkey_cache['masterkey_one'] = load_masterkey('masterkey_one', @config['masterkey_one'])
+        @masterkey_cache['masterkey_two'] = load_masterkey('masterkey_two', @config['masterkey_two'])
     end
 
     def logout()
@@ -24,26 +25,13 @@ class Authentication
 
     def get_master_key(version = nil)
         if version.nil?
-            masterkey_label =  @config['masterkey_in_use']
-            masterkey = session.find_objects(:LABEL => masterkey_label)[0]
+            masterkey = masterkey_cache[@config['masterkey_in_use']]
         else
-            if version == 01
-                version = 'one'
-            elsif version == 02
-                version = 'two'
+            masterkey = @masterkey_cache['masterkey_one']
+
+            if version == '02'
+                masterkey = @masterkey_cache['masterkey_two']
             end
-
-            masterkey_label =  @config['masterkey_' + version]
-
-            if masterkey_label == '' || masterkey_label.nil?
-                raise 'Unknown masterkey'
-            end
-
-            masterkey = session.find_objects(:LABEL => masterkey_label)[0]
-        end
-
-        if masterkey.nil?
-            masterkey = @session.unwrap_key(:AES_ECB, get_transport_key(), Array(@masterkey).pack('H*'), :CLASS => CKO_SECRET_KEY, :KEY_TYPE => CKK_AES, :VALUE_LEN => 16, :EXTRACTABLE => true, :ENCRYPT => true, :DECRYPT => true, :SIGN => true, :VERIFY => true, :WRAP => true, :UNWRAP => true, :TOKEN => true, :LABEL => masterkey_label)
         end
 
         if masterkey.nil?
@@ -53,7 +41,13 @@ class Authentication
         masterkey
     end
 
-    def get_decrypted_master_key()
-        session.decrypt(:AES_ECB, get_transport_key(), Array(@masterkey).pack('H*'))
+    def load_masterkey(label, key)
+        masterkey = session.find_objects(:LABEL => label)[0]
+
+        if masterkey.nil?
+            masterkey = @session.unwrap_key(:AES_ECB, get_transport_key(), Array(key).pack('H*'), :CLASS => CKO_SECRET_KEY, :KEY_TYPE => CKK_AES, :VALUE_LEN => 16, :EXTRACTABLE => true, :ENCRYPT => true, :DECRYPT => true, :SIGN => true, :VERIFY => true, :WRAP => true, :UNWRAP => true, :TOKEN => true, :LABEL => label)
+        end
+
+        masterkey
     end
 end

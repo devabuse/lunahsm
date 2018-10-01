@@ -1,5 +1,5 @@
 class SignMessage < HsmMethod
-    def initialize(bancontact, session_key, message)
+    def initialize(luna, session_key, message)
         @session_key = session_key
         @message = Array(message).pack('H*')
 

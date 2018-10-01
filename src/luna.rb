@@ -14,21 +14,28 @@ class Luna
     def getInstance()
         instance = nil;
 
-        case @method
-        when 'generate_session_key'
+        if @method == 'generate_session_key'
             instance = GenerateSessionKey.new(self)
-        when 'sign_message'
-            if @params[1].nil? || @params[2].nil?
-                raise 'Please provide session_key and message'
+        elsif @method == 'sign_message'
+            if @params[1].nil?
+                raise 'Please provide the session_key'
+            elsif @params[2].nil?
+                raise 'Please provide the message '
             end
 
             session_key = @params[1]
             message = @params[2]
 
             instance = SignMessage.new(self, session_key, message)
-        when 'verify_message'
+        elsif @method == 'verify_message'
             if @params[1].nil?
-                raise 'Please provide message'
+                raise 'Please provide the session_key'
+            elsif @params[2].nil?
+                raise 'Please provide the expected mac'
+            elsif @params[3].nil?
+                raise 'Please provide the masterkey version'
+            elsif @params[4].nil?
+                raise 'Please provide the message'
             end
 
             session_key = @params[1]
@@ -40,19 +47,5 @@ class Luna
         end
 
         instance
-    end
-
-    def self.call_instance(config, params)
-        include PKCS11
-
-        authentication = Authentication.new(config)
-
-        begin
-            instance = Bancontact.new(authentication, ARGV).getInstance()
-            puts instance.execute().to_json
-            authentication.session.logout()
-        rescue Interrupt => _
-            authentication.session.logout()
-        end
     end
 end

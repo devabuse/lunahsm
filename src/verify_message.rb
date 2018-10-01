@@ -1,5 +1,5 @@
 class VerifyMessage < HsmMethod
-    def initialize(bancontact, session_key, expected_mac, masterkey_version, message)
+    def initialize(luna, session_key, expected_mac, masterkey_version, message)
         @session_key = session_key
         @message = Array(message).pack('H*')
         @masterkey_version = masterkey_version

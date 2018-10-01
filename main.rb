@@ -1,10 +1,11 @@
-require "pkcs11"
-require "json"
 require "yaml"
 
-config = YAML.load_file("config/config.yml")
+config = YAML.load_file(File.dirname(__FILE__) + "/config/config.yml")
 
 if config['use_direct_connection']
+    require "pkcs11"
+    require "json"
+
     require_relative "src/authentication.rb"
     require_relative "src/hsm_method.rb"
     require_relative "src/generate_session_key.rb"
@@ -27,5 +28,5 @@ if config['use_direct_connection']
 else
     require_relative "hsm_client.rb"
 
-    HsmClient.init(true, ARGV)
+    HsmClient.init(ARGV, config['rabbitmq'])
 end
